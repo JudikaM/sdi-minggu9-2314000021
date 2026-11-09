@@ -1,0 +1,33 @@
+name: SDI Minggu 9
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: python -m compileall -q app.py test_unit.py test_integration.py package.py verify.py
+      - name: Unit tests
+        run: python -m unittest -v test_unit
+      - name: Integration tests
+        run: python -m unittest -v test_integration
+      - name: Package candidate
+        run: python package.py
+      - name: Store candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdi-m9-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
